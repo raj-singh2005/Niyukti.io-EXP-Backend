@@ -1,0 +1,276 @@
+// ==========================================
+// PRISMA CLIENT & DATASOURCE CONFIGURATION
+// ==========================================
+generator client {
+  provider = "prisma-client-js"
+}
+
+// In Prisma 7, connection URLs are no longer allowed here.
+// They are managed in prisma.config.ts and database.ts.
+datasource db {
+  provider = "postgresql"
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+enum GlobalRole {
+  ONBOARDING
+  STUDENT
+  MENTOR
+  SUPER_ADMIN
+}
+
+enum OrgStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum OrgRole {
+  ORG_ADMIN
+  RECRUITER
+}
+
+enum SubmissionStatus {
+  JOINED
+  SUBMITTED
+  REVIEWED
+}
+
+enum InternshipStatus {
+  ACTIVE
+  COMPLETED
+  TERMINATED
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  SUBMITTED
+  COMPLETED
+}
+
+enum QuestionCategory {
+  APTITUDE
+  CN
+  DBMS
+  OOPS
+  SYSTEM_DESIGN
+  HR
+}
+
+// ==========================================
+// PHASE 1 & 6: IDENTITY, PROFILES & GAMIFICATION
+// ==========================================
+model User {
+  id             String              @id @default(uuid())
+  email          String              @unique
+  username       String              @unique
+  password       String
+  refreshToken   String?             @db.Text
+  globalRole     GlobalRole          @default(ONBOARDING)
+  createdAt      DateTime            @default(now())
+
+  studentProfile StudentProfile?
+  mentorProfile  MentorProfile?
+  orgMemberships OrganizationMember[]
+
+  givenStars     Endorsement[]       @relation("GivenEndorsements")
+  receivedStars  Endorsement[]       @relation("ReceivedEndorsements")
+}
+
+model Endorsement {
+  id          String   @id @default(uuid())
+  message     String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  endorserId  String
+  recipientId String
+
+  endorser    User     @relation("GivenEndorsements", fields: [endorserId], references: [id], onDelete: Cascade)
+  recipient   User     @relation("ReceivedEndorsements", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@unique([endorserId, recipientId])
+}
+
+model StudentProfile {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fullName        String
+  collegeName     String
+  degree          String
+  major           String
+  graduationYear  Int
+  interestSummary String   @db.Text
+  resumeUrl       String?
+  skills          String[]
+
+  submissions     ProjectSubmission[]
+  internships     Internship[]
+
+  solvedTheory    TheorySolvedQuestion[]
+  solvedDSA       DSASolvedQuestion[]
+}
+
+model MentorProfile {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fullName          String
+  currentCompany    String
+  designation       String
+  yearsOfExperience Int
+  expertise         String[]
+  linkedinUrl       String
+
+  projects          Project[]            @relation("ProjectMentors")
+  internships       Internship[]
+}
+
+// ==========================================
+// PHASE 2: TENANTS & ACCESS
+// ==========================================
+model Organization {
+  id           String               @id @default(uuid())
+  name         String               @unique
+  website      String?
+  contactPhone String
+  linkedinUrl  String
+  livePhoto    String               // Required for anti-spam verification
+  status       OrgStatus            @default(PENDING)
+
+  members      OrganizationMember[]
+  projects     Project[]
+  internships  Internship[]
+}
+
+model OrganizationMember {
+  id             String       @id @default(uuid())
+  role           OrgRole      @default(RECRUITER)
+  userId         String
+  organizationId String
+
+  user           User         @relation(fields: [userId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([userId, organizationId])
+}
+
+// ==========================================
+// PHASE 3 & 4: PROJECTS, INTERNSHIPS & TASKS
+// ==========================================
+model Project {
+  id             String              @id @default(uuid())
+  title          String
+  description    String              @db.Text
+  instructions   String              @db.Text
+  repositoryUrl  String?
+  organizationId String
+
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  mentors        MentorProfile[]     @relation("ProjectMentors")
+  submissions    ProjectSubmission[]
+}
+
+model ProjectSubmission {
+  id            String           @id @default(uuid())
+  status        SubmissionStatus @default(JOINED)
+  submissionUrl String?
+  feedback      String?          @db.Text
+  projectId     String
+  studentId     String
+
+  project       Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  student       StudentProfile   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, studentId])
+}
+
+model Internship {
+  id             String           @id @default(uuid())
+  title          String
+  status         InternshipStatus @default(ACTIVE)
+  startDate      DateTime         @default(now())
+  endDate        DateTime?
+  organizationId String
+  studentId      String
+  mentorId       String
+
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  student        StudentProfile   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  mentor         MentorProfile    @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+
+  tasks          Task[]
+}
+
+model Task {
+  id             String     @id @default(uuid())
+  title          String
+  description    String     @db.Text
+  status         TaskStatus @default(TODO)
+  dueDate        DateTime?
+  submissionUrl  String?
+  mentorFeedback String?    @db.Text
+  internshipId   String
+
+  internship     Internship @relation(fields: [internshipId], references: [id], onDelete: Cascade)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+// ==========================================
+// PHASE 5: THE PRACTICE ZONE
+// ==========================================
+
+// --- Branch A: Theory & Academics ---
+model TheoryQuestion {
+  id            String                 @id @default(uuid())
+  category      QuestionCategory
+  questionText  String                 @db.Text
+  options       String[]
+  correctAnswer String
+  explanation   String?                @db.Text
+
+  solvedRecords TheorySolvedQuestion[]
+}
+
+model TheorySolvedQuestion {
+  id         String         @id @default(uuid())
+  solvedAt   DateTime       @default(now())
+
+  studentId  String
+  questionId String
+
+  student    StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  question   TheoryQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, questionId])
+}
+
+// --- Branch B: DSA & Code Execution ---
+model DSAQuestion {
+  id            String              @id @default(uuid())
+  title         String
+  difficulty    String
+  description   String              @db.Text
+  leetcodeUrl   String
+
+  solvedRecords DSASolvedQuestion[]
+}
+
+model DSASolvedQuestion {
+  id         String         @id @default(uuid())
+  solvedAt   DateTime       @default(now())
+
+  studentId  String
+  questionId String
+
+  student    StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  question   DSAQuestion    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, questionId])
+}
