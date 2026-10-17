@@ -33,6 +33,17 @@ process.stdin.on("end", () => {
       ? event.tool_input
       : JSON.stringify(event.tool_input ?? {});
 
+  const referencesEnvFile =
+    /(?:^|[\\/"'\s])\.env(?:\.[A-Za-z0-9_-]+)*(?=$|[\\/"'\s])/i.test(toolInput);
+
+  if (referencesEnvFile) {
+    respond(
+      "deny",
+      "Agents must never read or access .env files, including .env.* variants.",
+    );
+    return;
+  }
+
   if (
     /^(?:view|read(?:_file|file)?|list(?:_files|_directory|_dir)?|glob|rg|grep|search(?:_files|_text|_code)?|find(?:_files|_text)?)$/i.test(
       toolName,

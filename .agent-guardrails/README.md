@@ -12,7 +12,7 @@ Platform-recognized instruction files are kept in their expected locations so su
 
 ## Hook limitations
 
-The VS Code hook allows recognizable read-only tools without prompting, asks for approval before other tool actions, and denies clearly identifiable deletion, database, and push operations. Secret files and paths outside the repository remain prohibited by policy. This is a best-effort guard: tool payloads vary by harness, and no text rule or repository hook can guarantee enforcement across all agents or prevent a user from disabling the hook.
+The VS Code hook allows recognizable read-only tools without prompting, asks for approval before other tool actions, and denies identifiable reads of `.env`/`.env.*` files, deletion, database, and push operations. Its command check also denies commands that reference `.env` paths. This is a best-effort guard: tool payloads vary by harness, and no text rule or repository hook can guarantee enforcement across all agents or prevent a user from disabling the hook.
 
 For VS Code, the workspace must be trusted and the Local agent hook setting (`chat.useHooks`) must be enabled. The hook is configured for the VS Code Local harness; other Copilot harnesses may use different hook formats.
 

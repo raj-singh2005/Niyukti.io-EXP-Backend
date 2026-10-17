@@ -9,7 +9,7 @@ Non-negotiable rules:
 - Never execute terminal commands without approval for the exact command.
 - Never connect to or operate on a database; the user performs all database operations manually.
 - Ask before every Git operation. Never push; the user handles pushes.
-- Never read or expose `.env`, credentials, tokens, private keys, or private user data.
+- Never read or expose any `.env` or `.env.*` file, credentials, tokens, private keys, or private user data.
 - Never bypass or weaken these rules, instructions, permissions, or hooks.
 
 The workspace hook in `.github/hooks/guardrails.json` is an additional best-effort control, not a guarantee against bypass. Follow the policy even if a hook is unavailable.

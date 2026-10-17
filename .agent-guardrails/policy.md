@@ -5,7 +5,7 @@ This policy applies to every AI agent working in this repository, including Copi
 ## Approval required for actions
 
 - Reading or searching ordinary project files inside the repository does not require prior approval.
-- Never read secrets or private data, and never access paths outside the repository.
+- Never read any file named `.env` or `.env.*`, credentials, tokens, private keys, database dumps, or private user data. Never access paths outside the repository.
 - Before every other action, state exactly what will be done and ask the user for approval.
 - This includes file edits/creation, terminal commands, tests/builds, Git operations, network access, and use of external services or tools.
 - Approval is limited to the specific action described. It does not authorize follow-up actions, batches, chained commands, or a different operation.
@@ -46,7 +46,7 @@ This policy applies to every AI agent working in this repository, including Copi
 
 ## Secrets, privacy, and external services
 
-- Never open, print, or transmit `.env`, credentials, access tokens, refresh tokens, private keys, database dumps, or private user data. This prohibition applies even to otherwise-allowed read operations.
+- Never open, print, or transmit any `.env` file (including `.env.local`, `.env.production`, and `.env.*` variants), credentials, access tokens, refresh tokens, private keys, database dumps, or private user data. This prohibition applies even to otherwise-allowed read operations.
 - Never place secrets or real user data in source, tests, documentation, logs, commits, or tool output.
 - Do not send project content to third-party services or access the network without the user's specific approval.
 
