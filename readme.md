@@ -1,6 +1,7 @@
 # Developer Instructions
 
 ## Project setup
+### [View the Project Timeline](projectTimeline.md)
 
 1. Install the supported Node.js LTS release and npm.
 2. Install dependencies from the repository root:
