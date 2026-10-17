@@ -124,6 +124,12 @@ dist
 .agents/
 .claude/
 .windsurf/
+!.claude/
+.claude/*
+!.claude/settings.json
+!.claude/rules/
+.claude/rules/*
+!.claude/rules/guardrails.md
 
 # Winston Logs
 logs/

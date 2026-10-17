@@ -98,3 +98,39 @@ The server connects to PostgreSQL during startup and initializes Redis/BullMQ co
 - Mention any checks that could not be run.
 - Avoid unrelated refactors and dependency changes; add abstractions when they solve a real repeated need.
 - Update documentation when a change affects setup, behavior, or developer workflow.
+
+## AI agent guardrails
+
+This repository includes shared AI-agent rules in `.agent-guardrails/policy.md` and `.agent-guardrails/approval-matrix.md`. Read those before using an AI coding agent on this project.
+
+The rules require approval before changes, commands, and Git operations; prohibit agents from deleting project files, operating on a database, or pushing; and prohibit access to secrets and paths outside the repository. Read-only access to ordinary project files is allowed. These rules apply to contributors using AI tools, not just the original developer.
+
+### Agent configuration
+
+The repository has platform-specific entry points:
+
+- **GitHub Copilot in VS Code:** `.github/copilot-instructions.md`
+- **VS Code Local agent hooks:** `.github/hooks/guardrails.json` and `.github/hooks/guardrails.cjs`
+- **Claude Code:** `.claude/rules/guardrails.md` and `.claude/settings.json`
+- **Cursor:** `.cursor/rules/guardrails.mdc`
+- **Antigravity:** `.agent/rules/guardrails.md`
+
+For VS Code, open the repository as a trusted workspace and ensure `chat.useHooks` is enabled in `.vscode/settings.json`. Hook support depends on the selected agent harness and VS Code version.
+
+For Claude Code, use a version that supports project rules and hooks, and review/approve the project hook configuration when prompted.
+
+Cursor and Antigravity have project rule files, but those files provide instructions; they are not confirmed blocking hooks in every version. Check the documentation and permission settings for the specific installed version before relying on enforcement.
+
+### Test the shared hook
+
+Run the synthetic hook checks from the repository root:
+
+```sh
+node .agent-guardrails/hooks/test-guardrails.cjs
+```
+
+The test checks that a recognized read-only tool is allowed, a normal command asks for approval, recognizable push/database/destructive commands are denied, and malformed input fails closed. It does not connect to a database, modify Git, or prove that a live agent platform has loaded the hook.
+
+### Important limitations
+
+These repository files are guardrails, not an unbypassable security boundary. Instructions guide agent behavior, while hooks can only control operations supported by the host tool. Tool names and hook behavior may differ across platforms and versions. For stronger restrictions, configure each platform's permissions and restrict agent access to databases, secrets, network, and files outside this repository. Never provide an agent with database credentials if it must not access a database.
