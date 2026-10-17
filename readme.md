@@ -39,7 +39,7 @@ Required variables:
 | `REFRESH_TOKEN_SECRET` | Secret used to sign refresh tokens |
 | `REFRESH_TOKEN_EXPIRY` | Refresh-token lifetime accepted by `jsonwebtoken` |
 
-`PORT` and `NODE_ENV` are optional in `envConfig.ts`. Note that `src/server.ts` currently defaults its listening port to `5050` when `PORT` is unset, while `envConfig.ts` defaults `config.port` to `5000`; keep this behavior in mind and set `PORT` explicitly when the desired port matters.
+PORT and NODE_ENV are optional in envConfig.ts. If PORT is unset, the application defaults to port 5000 uniformly across the project. Set PORT explicitly when a different port is required.
 
 Do not put real credentials in documentation, source code, logs, tests, or commits. The repository `.gitignore` excludes `.env`; verify that secrets are not staged before committing.
 
