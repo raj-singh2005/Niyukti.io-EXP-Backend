@@ -4,7 +4,7 @@ import { prisma } from "./database.js";
 import { logger } from "./logger/winston.logger.js";
 import { setupGracefulShutdown } from "./utils/shutdown.js";
 
-const PORT = process.env.PORT || 5050;
+const PORT = process.env.PORT || 5000;
 
 async function startServer() {
   try {
