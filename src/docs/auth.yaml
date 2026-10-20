@@ -121,3 +121,144 @@
         description: A code was recently requested; wait before requesting another.
       "500":
         description: The code could not be stored or queued for email delivery.
+
+/api/v1/auth/login:
+  post:
+    tags:
+      - Auth
+    summary: Log in with email, password, and verification code
+    description: Verifies the account credentials and one-time login code, then sets access and refresh tokens in HttpOnly cookies.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - email
+              - password
+              - otp
+            properties:
+              email:
+                type: string
+                format: email
+                example: person@example.com
+              password:
+                type: string
+                minLength: 1
+                format: password
+                example: "StrongPass123"
+              otp:
+                type: string
+                pattern: "^[0-9]{6}$"
+                example: "012345"
+    responses:
+      "200":
+        description: Login successful; access and refresh tokens are set in HttpOnly cookies.
+        headers:
+          Set-Cookie:
+            description: Sets the accessToken and refreshToken cookies.
+            schema:
+              type: string
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                statusCode:
+                  type: integer
+                  example: 200
+                data:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    email:
+                      type: string
+                      format: email
+                    username:
+                      type: string
+                    globalRole:
+                      type: string
+                      enum: [ONBOARDING, STUDENT, MENTOR, SUPER_ADMIN]
+                    createdAt:
+                      type: string
+                      format: date-time
+                message:
+                  type: string
+                  example: Login successful
+                success:
+                  type: boolean
+                  example: true
+      "400":
+        description: Request validation failed.
+      "401":
+        description: Invalid email, password, or verification code.
+      "500":
+        description: Unable to verify the login code or issue tokens.
+
+/api/v1/auth/refresh-token:
+  post:
+    tags:
+      - Auth
+    summary: Refresh the current session
+    description: Validates the refresh-token cookie against the stored token, rotates the access and refresh tokens, and resets both HttpOnly cookies.
+    responses:
+      "200":
+        description: Session refreshed; new access and refresh tokens are set in HttpOnly cookies.
+        headers:
+          Set-Cookie:
+            description: Sets the rotated accessToken and refreshToken cookies.
+            schema:
+              type: string
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                statusCode:
+                  type: integer
+                  example: 200
+                data:
+                  type: object
+                  example: {}
+                message:
+                  type: string
+                  example: Session refreshed successfully
+                success:
+                  type: boolean
+                  example: true
+      "401":
+        description: Refresh token is missing, invalid, expired, or no longer current. Authentication cookies are cleared.
+      "500":
+        description: The session could not be refreshed because of an internal or database error.
+
+/api/v1/auth/logout:
+  post:
+    tags:
+      - Auth
+    summary: Log out of the current session
+    description: Revokes the current refresh token when valid and clears both authentication cookies. Missing, invalid, or already-revoked refresh tokens are treated as an already-completed logout. An issued access token may remain usable until its expiry.
+    responses:
+      "200":
+        description: Logged out successfully; access and refresh token cookies are cleared.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                statusCode:
+                  type: integer
+                  example: 200
+                data:
+                  type: object
+                  example: {}
+                message:
+                  type: string
+                  example: Logged out successfully
+                success:
+                  type: boolean
+                  example: true
+      "500":
+        description: The refresh token could not be revoked because of an internal or database error. Cookies are still cleared.

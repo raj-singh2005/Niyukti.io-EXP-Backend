@@ -2,6 +2,7 @@ import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
 import { unlink } from "fs/promises";
 import { existsSync } from "fs";
 import { config } from "../envConfig.js";
+import { logger } from "../logger/winston.logger.js";
 
 cloudinary.config({
   cloud_name: config.cloudinary.cloudName,
@@ -12,25 +13,48 @@ cloudinary.config({
 export const uploadOnCloudinary = async (
   localFilePath: string
 ): Promise<UploadApiResponse | null> => {
-  try {
-    if (!localFilePath) return null;
+  if (!localFilePath) return null;
 
-    const response = await cloudinary.uploader.upload(localFilePath, {
+  let response: UploadApiResponse;
+  try {
+    response = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto",
     });
-
-    // Non-blocking asynchronous deletion
-    if (existsSync(localFilePath)) {
-      await unlink(localFilePath);
-    }
-
-    return response;
   } catch (error) {
-    if (localFilePath && existsSync(localFilePath)) {
-      await unlink(localFilePath);
+    logger.error("Cloudinary upload failed", {
+      error: error instanceof Error ? error.message : "Unknown Cloudinary error",
+    });
+    if (localFilePath) {
+      try {
+        if (existsSync(localFilePath)) {
+          await unlink(localFilePath);
+        }
+      } catch (cleanupError) {
+        logger.error("Failed to remove local file after Cloudinary upload failure", {
+          error:
+            cleanupError instanceof Error
+              ? cleanupError.message
+              : "Unknown file cleanup error",
+        });
+      }
     }
     return null;
   }
+
+  try {
+    if (existsSync(localFilePath)) {
+      await unlink(localFilePath);
+    }
+  } catch (cleanupError) {
+    logger.error("Failed to remove local file after Cloudinary upload", {
+      error:
+        cleanupError instanceof Error
+          ? cleanupError.message
+          : "Unknown file cleanup error",
+    });
+  }
+
+  return response;
 };
 
 export const deleteFromCloudinary = async (
@@ -46,7 +70,9 @@ export const deleteFromCloudinary = async (
 
     return result;
   } catch (error) {
-    console.error("Cloudinary file deletion failed:", error);
+    logger.error("Cloudinary file deletion failed", {
+      error: error instanceof Error ? error.message : "Unknown Cloudinary error",
+    });
     return null;
   }
 };
@@ -71,7 +97,9 @@ export const extractPublicId = (url: string): string | null => {
 
     return publicId;
   } catch (error) {
-    console.error("Failed to extract Cloudinary public ID:", error);
+    logger.error("Failed to extract Cloudinary public ID", {
+      error: error instanceof Error ? error.message : "Unknown URL parsing error",
+    });
     return null;
   }
 };

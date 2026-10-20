@@ -14,6 +14,7 @@ import { helmetMiddleware } from "./middlewares/helmet.middleware.js";
 import { asyncHandler } from "./utils/asyncHandler.js";
 import { ApiResponse } from "./utils/apiResponse.js";
 import { ApiError } from "./utils/apiError.js";
+import { logger } from "./logger/winston.logger.js";
 
 // Database
 import { prisma } from "./database.js";
@@ -46,7 +47,9 @@ app.get(
       // Optional: Ping the database to ensure it is actually connected
       await prisma.$queryRaw`SELECT 1`;
     } catch (error) {
-      // This immediately stops the request and triggers your global error middleware
+      logger.error("Health check database query failed", {
+        error: error instanceof Error ? error.message : "Unknown database error",
+      });
       throw new ApiError(500, "Database is completely down!");
     }
 

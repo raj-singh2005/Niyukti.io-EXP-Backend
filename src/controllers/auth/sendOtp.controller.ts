@@ -47,6 +47,9 @@ export const sendOtpController = async (
     }
   } catch (error) {
     if (error instanceof ApiError) throw error;
+    logger.error("Failed to enforce login OTP cooldown", {
+      error: error instanceof Error ? error.message : "Unknown Redis error",
+    });
     throw ApiError.internal("Unable to enforce login code cooldown");
   }
 
@@ -58,10 +61,16 @@ export const sendOtpController = async (
       LOGIN_OTP_TTL_SECONDS,
     );
     if (otpResult !== "OK") {
+      logger.error("Redis did not confirm login OTP storage");
       throw ApiError.internal("Unable to store login verification code");
     }
     await EmailService.sendOtpEmail(user.email, user.username, otp);
   } catch (error) {
+    if (!(error instanceof ApiError)) {
+      logger.error("Failed to store login OTP or queue its email", {
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
     const cleanupResults = await Promise.allSettled([
       redisClient.del(redisKey),
       redisClient.del(cooldownKey),

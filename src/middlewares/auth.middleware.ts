@@ -39,10 +39,14 @@ export const verifyJWT = asyncHandler(
       }
 
       // We decode assuming the payload structure we built earlier: { userId: string }
-      const decodedToken = JWT.verify(
-        token,
-        config.jwt.accessSecret
-      ) as { userId: string };
+      const decodedToken = JWT.verify(token, config.jwt.accessSecret);
+      if (
+        typeof decodedToken === "string" ||
+        typeof decodedToken.userId !== "string" ||
+        decodedToken.userId.length === 0
+      ) {
+        throw ApiError.unauthorized("Invalid Access Token");
+      }
 
       // Prisma equivalent of Mongoose's .select("-password -refreshToken")
       const user = await prisma.user.findUnique({
@@ -59,8 +63,18 @@ export const verifyJWT = asyncHandler(
 
       req.user = user;
       next();
-    } catch (error: any) {
-      next(ApiError.unauthorized(error?.message || "Invalid Access Token"));
+    } catch (error: unknown) {
+      if (error instanceof ApiError) {
+        next(error);
+        return;
+      }
+
+      if (error instanceof JWT.JsonWebTokenError) {
+        next(ApiError.unauthorized("Invalid Access Token"));
+        return;
+      }
+
+      next(error);
     }
   }
 );
