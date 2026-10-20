@@ -5,7 +5,6 @@ import cookieParser from "cookie-parser";
 
 import { monitorConfig } from "./monitoring/statusMonitor.js";
 import { setupSwagger } from "./docs/swagger.js";
-import { EmailService } from "./services/email.service.js";
 
 // Middlewares
 import { errorHandler } from "./middlewares/error.middleware.js";
@@ -18,6 +17,7 @@ import { ApiError } from "./utils/apiError.js";
 
 // Database
 import { prisma } from "./database.js";
+import apiRouter from "./routes/index.routes.js";
 
 const app: Application = express();
 
@@ -59,27 +59,8 @@ app.get(
   })
 );
 
-// 4. API Routes will go here
-
-app.get("/test-email", async (req, res) => {
-  try {
-    // IMPORTANT: Replace this string with your actual email address to see the result
-    const testEmailAddress = "your.personal.email@gmail.com"; 
-
-    await EmailService.sendOtpEmail(testEmailAddress, "Raj", "867530");
-    
-    res.status(200).json({ 
-      success: true, 
-      message: "Test email successfully pushed to the BullMQ queue!" 
-    });
-  } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: "Failed to queue email", 
-      error: error instanceof Error ? error.message : "Unknown error" 
-    });
-  }
-});
+// 4. API routes
+app.use("/api/v1", apiRouter);
 
 // 5. Global Error Handler (MUST BE THE VERY LAST APP.USE)
 app.use(errorHandler);

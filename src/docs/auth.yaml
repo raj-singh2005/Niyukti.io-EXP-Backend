@@ -1,0 +1,123 @@
+/api/v1/auth/signup:
+  post:
+    tags:
+      - Auth
+    summary: Create a user account
+    description: Validates signup details, hashes the password, and creates a user with the ONBOARDING role.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - email
+              - username
+              - password
+            properties:
+              email:
+                type: string
+                format: email
+                example: person@example.com
+              username:
+                type: string
+                minLength: 1
+                example: person
+              password:
+                type: string
+                minLength: 8
+                maxLength: 16
+                format: password
+                example: "StrongPass123"
+    responses:
+      "201":
+        description: Account created successfully.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                statusCode:
+                  type: integer
+                  example: 201
+                data:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    email:
+                      type: string
+                      format: email
+                    username:
+                      type: string
+                    globalRole:
+                      type: string
+                      enum: [ONBOARDING, STUDENT, MENTOR, SUPER_ADMIN]
+                    createdAt:
+                      type: string
+                      format: date-time
+                message:
+                  type: string
+                  example: Account created successfully
+                success:
+                  type: boolean
+                  example: true
+      "400":
+        description: Signup request failed validation.
+      "409":
+        description: Email or username is already in use.
+
+/api/v1/auth/send-otp:
+  post:
+    tags:
+      - Auth
+    summary: Send a login verification code
+    description: Validates the account credentials, stores a six-digit login code in Redis for 10 minutes, and queues it for email delivery. Requests are limited by a 40-second resend cooldown.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - email
+              - password
+            properties:
+              email:
+                type: string
+                format: email
+                example: person@example.com
+              password:
+                type: string
+                minLength: 1
+                format: password
+                example: "StrongPass123"
+    responses:
+      "200":
+        description: Login verification code queued for email delivery.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                statusCode:
+                  type: integer
+                  example: 200
+                data:
+                  type: object
+                  example: {}
+                message:
+                  type: string
+                  example: Login verification code queued
+                success:
+                  type: boolean
+                  example: true
+      "400":
+        description: Request validation failed.
+      "401":
+        description: Email or password is invalid.
+      "429":
+        description: A code was recently requested; wait before requesting another.
+      "500":
+        description: The code could not be stored or queued for email delivery.
