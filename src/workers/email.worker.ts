@@ -27,6 +27,7 @@ export const emailWorker = new Worker<EmailJobData>(
   {
     connection: redisClient.duplicate(),
     concurrency: 5,
+    drainDelay: 300,
   },
 );
 
