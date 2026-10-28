@@ -14,3 +14,13 @@ export interface SendLoginOtpInput {
   email: string;
   password: string;
 }
+
+export interface RequestPasswordResetOtpInput {
+  email: string;
+}
+
+export interface ResetPasswordInput {
+  email: string;
+  otp: string;
+  password: string;
+}

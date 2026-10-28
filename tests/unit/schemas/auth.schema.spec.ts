@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   loginSchema,
+  requestPasswordResetOtpSchema,
+  resetPasswordSchema,
   sendLoginOtpSchema,
   signupSchema,
 } from "../../../src/schemas/auth.schema.js";
@@ -140,6 +142,68 @@ describe("sendLoginOtpSchema", () => {
     ).toBe(false);
     expect(
       sendLoginOtpSchema.safeParse({ email: "person@example.com" }).success,
+    ).toBe(false);
+  });
+});
+
+describe("requestPasswordResetOtpSchema", () => {
+  it("accepts and normalizes an email address", () => {
+    const result = requestPasswordResetOtpSchema.safeParse({
+      email: "  PERSON@EXAMPLE.COM ",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.email).toBe("person@example.com");
+    }
+  });
+
+  it("rejects an invalid email", () => {
+    expect(
+      requestPasswordResetOtpSchema.safeParse({ email: "invalid" }).success,
+    ).toBe(false);
+  });
+});
+
+describe("resetPasswordSchema", () => {
+  it("accepts normalized email, a six-digit OTP, and a valid new password", () => {
+    const result = resetPasswordSchema.safeParse({
+      email: " PERSON@EXAMPLE.COM ",
+      otp: "012345",
+      password: "NewStrongPass",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({
+        email: "person@example.com",
+        otp: "012345",
+        password: "NewStrongPass",
+      });
+    }
+  });
+
+  it("rejects invalid OTPs and passwords outside the 8-16 character range", () => {
+    expect(
+      resetPasswordSchema.safeParse({
+        email: "person@example.com",
+        otp: "12A456",
+        password: "NewStrongPass",
+      }).success,
+    ).toBe(false);
+    expect(
+      resetPasswordSchema.safeParse({
+        email: "person@example.com",
+        otp: "123456",
+        password: "short",
+      }).success,
+    ).toBe(false);
+    expect(
+      resetPasswordSchema.safeParse({
+        email: "person@example.com",
+        otp: "123456",
+        password: "PasswordTooLong123",
+      }).success,
     ).toBe(false);
   });
 });

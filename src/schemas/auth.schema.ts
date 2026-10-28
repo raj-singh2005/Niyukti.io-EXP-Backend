@@ -1,6 +1,8 @@
 import { z } from "zod";
 import type {
   LoginInput,
+  RequestPasswordResetOtpInput,
+  ResetPasswordInput,
   SendLoginOtpInput,
   SignupInput,
 } from "../types/auth.types.js";
@@ -23,4 +25,18 @@ export const loginSchema: z.ZodType<LoginInput> = z.object({
 export const sendLoginOtpSchema: z.ZodType<SendLoginOtpInput> = z.object({
   email: z.string().trim().toLowerCase().pipe(z.email()),
   password: z.string().min(1, "Password is required"),
+});
+
+export const requestPasswordResetOtpSchema: z.ZodType<RequestPasswordResetOtpInput> =
+  z.object({
+    email: z.string().trim().toLowerCase().pipe(z.email()),
+  });
+
+export const resetPasswordSchema: z.ZodType<ResetPasswordInput> = z.object({
+  email: z.string().trim().toLowerCase().pipe(z.email()),
+  otp: z.string().regex(/^\d{6}$/, "OTP must be exactly 6 digits"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(16, "Password must be no more than 16 characters"),
 });
