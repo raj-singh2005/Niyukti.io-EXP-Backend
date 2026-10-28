@@ -105,6 +105,7 @@ model StudentProfile {
   major           String
   graduationYear  Int
   interestSummary String   @db.Text
+  avatarUrl       String?
   resumeUrl       String?
   skills          String[]
 
@@ -126,6 +127,7 @@ model MentorProfile {
   yearsOfExperience Int
   expertise         String[]
   linkedinUrl       String
+  avatarUrl         String?
 
   projects          Project[]            @relation("ProjectMentors")
   internships       Internship[]
