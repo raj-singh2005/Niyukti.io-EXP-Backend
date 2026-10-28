@@ -1,0 +1,135 @@
+/api/v1/profiles/student:
+  post:
+    tags:
+      - Profiles
+    summary: Create the authenticated student's profile
+    description: Requires an access token for a user with the STUDENT global role. Creates one profile only. Send multipart form data; skills must be a JSON-encoded array string.
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - fullName
+              - collegeName
+              - degree
+              - major
+              - graduationYear
+              - interestSummary
+              - skills
+            properties:
+              fullName:
+                type: string
+                example: "Alex Student"
+              collegeName:
+                type: string
+                example: "Example University"
+              degree:
+                type: string
+                example: "B.Tech"
+              major:
+                type: string
+                example: "Computer Science"
+              graduationYear:
+                type: integer
+                example: 2027
+              interestSummary:
+                type: string
+                example: "Interested in backend engineering and distributed systems."
+              skills:
+                type: string
+                description: JSON-encoded array of non-empty skill strings.
+                example: '["TypeScript","PostgreSQL"]'
+              avatar:
+                type: string
+                format: binary
+                description: Optional JPEG, PNG, or WebP image up to 5 MB.
+              resume:
+                type: string
+                format: binary
+                description: Optional PDF document up to 10 MB.
+    responses:
+      "201":
+        description: Student profile created and Cloudinary URLs saved.
+      "400":
+        description: Required fields, skills JSON, file fields, file types, or file contents are invalid.
+      "401":
+        description: Access token is missing or invalid.
+      "403":
+        description: The authenticated account does not have the STUDENT role.
+      "409":
+        description: A student profile already exists for this account.
+      "413":
+        description: An uploaded file exceeds its field-specific size limit.
+      "500":
+        description: Upload or profile creation failed.
+
+/api/v1/profiles/mentor:
+  post:
+    tags:
+      - Profiles
+    summary: Create the authenticated mentor's profile
+    description: Requires an access token for a user with the MENTOR global role. Creates one profile only. Send multipart form data; expertise must be a JSON-encoded array string.
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - fullName
+              - currentCompany
+              - designation
+              - yearsOfExperience
+              - expertise
+              - linkedinUrl
+            properties:
+              fullName:
+                type: string
+                example: "Alex Mentor"
+              currentCompany:
+                type: string
+                example: "Example Technologies"
+              designation:
+                type: string
+                example: "Senior Software Engineer"
+              yearsOfExperience:
+                type: integer
+                minimum: 0
+                example: 8
+              expertise:
+                type: string
+                description: JSON-encoded array of non-empty expertise strings.
+                example: '["Backend Engineering","System Design"]'
+              linkedinUrl:
+                type: string
+                format: uri
+                example: "https://www.linkedin.com/in/alex-mentor"
+              avatar:
+                type: string
+                format: binary
+                description: Optional JPEG, PNG, or WebP image up to 5 MB.
+              resume:
+                type: string
+                format: binary
+                description: Optional PDF document up to 10 MB.
+    responses:
+      "201":
+        description: Mentor profile created and Cloudinary URLs saved.
+      "400":
+        description: Required fields, expertise JSON, file fields, file types, or file contents are invalid.
+      "401":
+        description: Access token is missing or invalid.
+      "403":
+        description: The authenticated account does not have the MENTOR role.
+      "409":
+        description: A mentor profile already exists for this account.
+      "413":
+        description: An uploaded file exceeds its field-specific size limit.
+      "500":
+        description: Upload or profile creation failed.

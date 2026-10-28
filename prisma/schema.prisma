@@ -128,6 +128,7 @@ model MentorProfile {
   expertise         String[]
   linkedinUrl       String
   avatarUrl         String?
+  resumeUrl         String?
 
   projects          Project[]            @relation("ProjectMentors")
   internships       Internship[]
