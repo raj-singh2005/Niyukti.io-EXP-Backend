@@ -1,4 +1,19 @@
-# Developer Instructions
+# Niyukti.io Backend
+
+Backend API for Niyukti.io, built with Express, TypeScript, Prisma, PostgreSQL, Redis/BullMQ, and Cloudinary.
+
+## Current implementation
+
+- Account signup and email-OTP login.
+- Password reset through a separate email-OTP flow.
+- Refresh-token rotation and logout using HttpOnly cookies.
+- One-time authenticated selection of the `STUDENT` or `MENTOR` global role after login.
+- Prisma student and mentor profiles include optional `avatarUrl` fields for Cloudinary URLs. The migration adding these columns is prepared but still needs to be applied to the developer's database.
+- Broader profile, organization, internship, project, and practice APIs remain in development.
+
+For environment setup, developer workflow, and project conventions, see [instruction.md](instruction.md). For the detailed file inventory and current progress, see [projectTimeline.md](projectTimeline.md).
+
+## Developer setup and instructions
 
 ## Project setup
 ### [View the Project Timeline](projectTimeline.md)
@@ -13,10 +28,10 @@
    - `DATABASE_URL` is used by the application through the Neon Prisma adapter. Use the pooled application connection string.
    - `DIRECT_URL` is used by Prisma CLI commands in `prisma.config.ts`. Use the direct/unpooled connection string.
 5. Ensure PostgreSQL and Redis are reachable, and configure the SMTP and Cloudinary credentials before starting the server. Configuration is validated as modules load, so missing required values can prevent the app from starting.
-6. Generate the Prisma Client and apply pending migrations to your development database:
+6. Apply pending migrations to your development database, then generate the Prisma Client:
    ```sh
-   npx prisma generate
    npx prisma migrate dev
+   npx prisma generate
    ```
 
 ## Environment configuration

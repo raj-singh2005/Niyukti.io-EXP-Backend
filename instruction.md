@@ -12,10 +12,10 @@
    - `DATABASE_URL` is used by the application through the Neon Prisma adapter. Use the pooled application connection string.
    - `DIRECT_URL` is used by Prisma CLI commands in `prisma.config.ts`. Use the direct/unpooled connection string.
 5. Ensure PostgreSQL and Redis are reachable, and configure the SMTP and Cloudinary credentials before starting the server. Configuration is validated as modules load, so missing required values can prevent the app from starting.
-6. Generate the Prisma Client and apply pending migrations to your development database:
+6. Apply pending migrations to your development database, then generate the Prisma Client:
    ```sh
-   npx prisma generate
    npx prisma migrate dev
+   npx prisma generate
    ```
 
 ## Environment configuration
@@ -65,6 +65,34 @@ npm test
 ```
 
 The server connects to PostgreSQL during startup and initializes Redis/BullMQ components. Make sure the required services and environment variables are available before starting it. The health endpoint is `/health`; Swagger UI is at `/api-docs`. Treat test-only endpoints as development-only and remove or protect them before exposing a deployment.
+
+## Current authentication API
+
+Authentication routes are mounted under `/api/v1/auth`:
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/signup` | Create an account with the `ONBOARDING` role |
+| `POST` | `/send-otp` | Request a login OTP after password verification |
+| `POST` | `/login` | Verify the login OTP and set auth cookies |
+| `POST` | `/forgot-password/request` | Request a password-reset OTP |
+| `POST` | `/forgot-password/reset` | Verify the reset OTP, change the password, and revoke the refresh token |
+| `PATCH` | `/change-role` | Authenticated `ONBOARDING` user chooses `STUDENT` or `MENTOR` once |
+| `POST` | `/refresh-token` | Rotate the refresh token |
+| `POST` | `/logout` | Revoke the refresh token and clear auth cookies |
+
+Use the `globalRole` returned by login to determine whether the frontend should show role selection. A role of `ONBOARDING` means the user has not selected a role yet. Role selection is one-time. Logout and password reset revoke refresh tokens, but an already issued access token may remain valid until its expiry. Login and reset OTPs currently have no wrong-attempt limit.
+
+## Profile avatar schema migration
+
+`StudentProfile` and `MentorProfile` now have nullable `avatarUrl` fields for Cloudinary URLs. The migration file is `prisma/migrations/20261028104210_add_profile_avatar_urls/migration.sql`. It has been created but has not been applied to the database. The developer must apply it and regenerate Prisma Client before using these fields against the database:
+
+```sh
+npx prisma migrate dev
+npx prisma generate
+```
+
+AI agents must not run these commands or otherwise operate on the database; the developer performs database operations manually.
 
 ## Code organization and implementation
 
