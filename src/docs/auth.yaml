@@ -272,6 +272,70 @@
       "500":
         description: Unable to verify the login code or issue tokens.
 
+/api/v1/auth/change-role:
+  patch:
+    tags:
+      - Auth
+    summary: Select the account role after login
+    description: Requires an access token. Updates only the authenticated user's role, and only while it is ONBOARDING. The role may be selected once as STUDENT or MENTOR; later changes are rejected.
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - role
+            properties:
+              role:
+                type: string
+                enum: [STUDENT, MENTOR]
+                example: STUDENT
+    responses:
+      "200":
+        description: Role selected successfully.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                statusCode:
+                  type: integer
+                  example: 200
+                data:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    email:
+                      type: string
+                      format: email
+                    username:
+                      type: string
+                    globalRole:
+                      type: string
+                      enum: [STUDENT, MENTOR]
+                    createdAt:
+                      type: string
+                      format: date-time
+                message:
+                  type: string
+                  example: Account role selected
+                success:
+                  type: boolean
+                  example: true
+      "400":
+        description: Request validation failed or role is not STUDENT or MENTOR.
+      "401":
+        description: Access token is missing or invalid.
+      "409":
+        description: The account role has already been selected.
+      "500":
+        description: The account role could not be updated.
+
 /api/v1/auth/refresh-token:
   post:
     tags:

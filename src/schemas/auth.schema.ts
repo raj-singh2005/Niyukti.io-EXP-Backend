@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type {
   LoginInput,
+  ChangeRoleInput,
   RequestPasswordResetOtpInput,
   ResetPasswordInput,
   SendLoginOtpInput,
@@ -39,4 +40,8 @@ export const resetPasswordSchema: z.ZodType<ResetPasswordInput> = z.object({
     .string()
     .min(8, "Password must be at least 8 characters")
     .max(16, "Password must be no more than 16 characters"),
+});
+
+export const changeRoleSchema: z.ZodType<ChangeRoleInput> = z.object({
+  role: z.enum(["STUDENT", "MENTOR"]),
 });

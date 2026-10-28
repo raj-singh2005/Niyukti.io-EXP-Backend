@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  changeRoleSchema,
   loginSchema,
   requestPasswordResetOtpSchema,
   resetPasswordSchema,
@@ -206,4 +207,17 @@ describe("resetPasswordSchema", () => {
       }).success,
     ).toBe(false);
   });
+});
+
+describe("changeRoleSchema", () => {
+  it.each(["STUDENT", "MENTOR"])("accepts the %s role", (role) => {
+    expect(changeRoleSchema.safeParse({ role }).success).toBe(true);
+  });
+
+  it.each(["ONBOARDING", "SUPER_ADMIN", "ORG_ADMIN", "invalid"])(
+    "rejects the %s role",
+    (role) => {
+      expect(changeRoleSchema.safeParse({ role }).success).toBe(false);
+    },
+  );
 });

@@ -24,3 +24,7 @@ export interface ResetPasswordInput {
   otp: string;
   password: string;
 }
+
+export interface ChangeRoleInput {
+  role: "STUDENT" | "MENTOR";
+}
